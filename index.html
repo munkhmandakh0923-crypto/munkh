@@ -748,17 +748,13 @@ function updateSubmitBtn() {
 
 async function submitChoices() {
   const name = nameInput.value.trim();
-  if (!name || selected.length === 0) {
-    alert(lang === 'ja'
-      ? '名前と行きたい場所を選択してください。'
-      : 'Нэрээ оруулаад очих газраа сонгоно уу.');
-    return;
-  }
+  if (!name || selected.length === 0) return;
 
   const entry = {
     name: name,
+    lang: lang,
     timestamp: new Date().toISOString(),
-    choices: selected.map(s => s.nameJa).join(", ")
+    choices: selected.map(s => s.icon + ' ' + s.nameJa).join(' | ')
   };
 
   try {
@@ -773,17 +769,24 @@ async function submitChoices() {
         body: JSON.stringify(entry)
       }
     );
-
-    alert(lang === 'ja'
-      ? '送信完了！ありがとうございます。'
-      : 'Амжилттай илгээгдлээ. Баярлалаа!');
-
-  } catch (err) {
+  } catch(err) {
     console.error(err);
-    alert('送信エラー');
   }
-}
 
+  document.getElementById('nameInput').style.display = 'none';
+  document.getElementById('submitBtn').style.display = 'none';
+  document.getElementById('submitTitle').style.display = 'none';
+  document.getElementById('submitDesc').style.display = 'none';
+
+  document.getElementById('successText').innerHTML =
+    T[lang].successText +
+    '<br><span class="s-name">' +
+    name + ' — ' +
+    selected.map(s => s.icon + ' ' + s.nameJa).join(', ') +
+    '</span>';
+
+  document.getElementById('successMsg').style.display = 'block';
+}
   // Save to localStorage
   let all = [];
   try { all = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch(e){}
