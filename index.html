@@ -745,22 +745,31 @@ function updateSubmitBtn() {
   document.getElementById('submitBtn').disabled = !ok;
 }
 
-function submitChoices() {
-  const name = nameInput.value.trim();
-  if (!name || selected.length === 0) return;
+async function submitSurvey() {
 
-  const entry = {
-    name,
-    lang,
-    timestamp: new Date().toISOString(),
-    choices: selected.map(s => ({nameJa: s.nameJa, icon: s.icon}))
-  };
+  const name = document.getElementById("name").value;
+  const selection = document.querySelector(
+    'input[name="choice"]:checked'
+  )?.value;
 
-  // Save to localStorage
-  let all = [];
-  try { all = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch(e){}
-  all.push(entry);
-  localStorage.setItem(STORE_KEY, JSON.stringify(all));
+  if (!name || !selection) {
+    alert("名前と選択を入力してください");
+    return;
+  }
+
+  await fetch(
+    "https://script.google.com/macros/s/AKfycbx-D3RszwkByZcNW12Im7c9V5nz0Ft4g57cmGxtwXX5gFB6POkJybD4ALXn4Ayn2UYK/exec",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        name: name,
+        selection: selection
+      })
+    }
+  );
+
+  alert("送信完了！");
+}
 
   // Show success
   document.getElementById('submitBox').querySelector('form');
