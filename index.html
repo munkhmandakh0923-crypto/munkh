@@ -646,7 +646,7 @@ const T = {
 };
 
 // ─── LANG ─────────────────────────────────────────────────────────
-function setLang(l) {
+ setLang(l) {
   lang = l;
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.includes({ja:'🇯🇵',mn:'🇲🇳',vi:'🇻🇳'}[l])));
   document.querySelectorAll('[data-t]').forEach(el => {
@@ -780,22 +780,6 @@ async function submitSurvey() {
   document.getElementById('successName').textContent = name + ' — ' + selected.map(s=>s.icon).join(' ');
   document.getElementById('successText').innerHTML = T[lang].successText + '<br><span class="s-name" id="successName">' + name + ' — ' + selected.map(s=>s.icon+' '+s.nameJa).join(', ') + '</span>';
   document.getElementById('successMsg').style.display = 'block';
-}
-  function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-
-  var data = JSON.parse(e.postData.contents);
-
-  sheet.appendRow([
-    data.name,
-    data.choices,
-    new Date()
-  ]);
-
-  return ContentService
-    .createTextOutput(JSON.stringify({result:"success"}))
-    .setMimeType(ContentService.MimeType.JSON);
-}
 // ─── ADMIN VIEW (open console and call viewSubmissions()) ──────────
 window.viewSubmissions = function() {
   try {
