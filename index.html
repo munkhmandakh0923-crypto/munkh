@@ -645,8 +645,6 @@ const T = {
     needName:'※Vui lòng nhập tên'
   }
 };
-
-// ─── LANG ─────────────────────────────────────────────────────────
 function setLang(l) {
   lang = l;
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.includes({ja:'🇯🇵',mn:'🇲🇳',vi:'🇻🇳'}[l])));
@@ -745,7 +743,6 @@ function updateSubmitBtn() {
   const ok = selected.length > 0 && nameInput.value.trim().length > 0;
   document.getElementById('submitBtn').disabled = !ok;
 }
-
 async function submitChoices() {
   const name = nameInput.value.trim();
   if (!name || selected.length === 0) return;
@@ -787,22 +784,7 @@ async function submitChoices() {
 
   document.getElementById('successMsg').style.display = 'block';
 }
-  // Save to localStorage
-  let all = [];
-  try { all = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch(e){}
-  all.push(entry);
-  localStorage.setItem(STORE_KEY, JSON.stringify(all));
 
-  // Show success
-  document.getElementById('submitBox').querySelector('form');
-  document.getElementById('nameInput').style.display = 'none';
-  document.getElementById('submitBtn').style.display = 'none';
-  document.getElementById('submitTitle').style.display = 'none';
-  document.getElementById('submitDesc').style.display = 'none';
-  document.getElementById('successName').textContent = name + ' — ' + selected.map(s=>s.icon).join(' ');
-  document.getElementById('successText').innerHTML = T[lang].successText + '<br><span class="s-name" id="successName">' + name + ' — ' + selected.map(s=>s.icon+' '+s.nameJa).join(', ') + '</span>';
-  document.getElementById('successMsg').style.display = 'block';
-}
 // ─── ADMIN VIEW (open console and call viewSubmissions()) ──────────
 window.viewSubmissions = function() {
   try {
