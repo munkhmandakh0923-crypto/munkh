@@ -1,0 +1,796 @@
+cat > /mnt/user-data/outputs/activity_selector.html << 'HTMLEOF'
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>研修旅行 アクティビティ選択</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+  --black:#0e0f0d; --forest:#1a2b1e; --moss:#2d4a32; --leaf:#3d6b44;
+  --coral:#ff5c3a; --coral2:#ff8a70; --sand:#f5f0e8; --warm:#ede6d8;
+  --muted:#8a9488; --text:#1a1f18; --border:#d8d4cb; --white:#ffffff;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{background:var(--sand);color:var(--text);font-family:'Noto Sans JP',sans-serif;-webkit-text-size-adjust:100%}
+
+/* ── NAV ── */
+nav{background:var(--black);position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:52px;border-bottom:1px solid rgba(255,255,255,.07)}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--coral);letter-spacing:3px}
+.lang-row{display:flex;gap:6px;align-items:center}
+.lang-btn{background:none;border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.5);padding:5px 11px;border-radius:4px;cursor:pointer;font-size:12px;font-family:'Space Grotesk',sans-serif;-webkit-appearance:none;touch-action:manipulation;min-height:34px;min-width:44px}
+.lang-btn.active{background:var(--coral);border-color:var(--coral);color:white;font-weight:600}
+
+/* ── HERO ── */
+.hero{background:var(--black);position:relative;overflow:hidden;padding:44px 20px 40px}
+.hero-glow{position:absolute;inset:0;background:radial-gradient(ellipse at 20% 60%,rgba(61,107,68,.3) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(255,92,58,.15) 0%,transparent 50%);pointer-events:none}
+.hero-grid{position:absolute;inset:0;opacity:.035;background-image:linear-gradient(var(--leaf) 1px,transparent 1px),linear-gradient(90deg,var(--leaf) 1px,transparent 1px);background-size:36px 36px;pointer-events:none}
+.hero-inner{position:relative;z-index:1;max-width:680px}
+.hero-eyebrow{font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--coral2);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.hero-eyebrow::before{content:'';width:24px;height:1px;background:var(--coral)}
+h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,11vw,96px);line-height:.9;color:var(--sand);letter-spacing:1px;margin-bottom:14px}
+h1 em{font-style:normal;color:var(--coral);display:block}
+.hero-sub{color:var(--muted);font-size:13px;line-height:1.8;font-weight:300;max-width:420px;margin-bottom:24px}
+.hero-chips{display:flex;gap:7px;flex-wrap:wrap}
+.chip{padding:5px 12px;border-radius:20px;font-size:11px;font-family:'Space Grotesk',sans-serif;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.55)}
+.chip-coral{border-color:rgba(255,92,58,.4);color:var(--coral2);background:rgba(255,92,58,.08)}
+
+/* ── FIXED ROUTE BANNER ── */
+.route-bar{background:var(--forest);border-bottom:2px solid var(--coral);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.route-bar::-webkit-scrollbar{display:none}
+.route-inner{display:flex;align-items:stretch;min-width:max-content;height:50px}
+.route-step{display:flex;align-items:center;gap:6px;padding:0 16px;position:relative;white-space:nowrap}
+.route-step+.route-step::before{content:'›';position:absolute;left:-2px;color:rgba(255,255,255,.2);font-size:18px}
+.rs-icon{font-size:15px}
+.rs-text{display:flex;flex-direction:column;line-height:1.2}
+.rs-title{font-size:11px;font-weight:600;color:var(--sand)}
+.rs-sub{font-size:9px;color:var(--muted)}
+.route-step.fixed-end .rs-title{color:var(--coral)}
+
+/* ── MAIN ── */
+.page{max-width:860px;margin:0 auto;padding:24px 14px 120px}
+
+/* ── FILTERS ── */
+.filter-wrap{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.filter-btn{border:1.5px solid var(--border);background:var(--white);color:var(--text);padding:7px 13px;border-radius:20px;font-size:12px;font-family:'Space Grotesk',sans-serif;cursor:pointer;-webkit-appearance:none;touch-action:manipulation;min-height:36px;font-weight:500;transition:all .15s}
+.filter-btn.active{background:var(--leaf);border-color:var(--leaf);color:white}
+
+/* ── SECTION HEADER ── */
+.section-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;margin-top:8px}
+.sh-line{flex:1;height:1px;background:var(--border)}
+.sh-label{font-size:9px;letter-spacing:4px;color:var(--muted);font-family:'Space Grotesk',sans-serif;text-transform:uppercase;white-space:nowrap}
+
+/* ── CARDS ── */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:28px}
+@media(max-width:500px){.cards{grid-template-columns:1fr}}
+
+.card{background:var(--white);border:2px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;position:relative;-webkit-user-select:none;user-select:none;touch-action:manipulation;-webkit-transform:translateZ(0);transform:translateZ(0);transition:border-color .15s,box-shadow .15s,transform .12s}
+.card:active{transform:scale(.98) translateZ(0)}
+.card.selected{border-color:var(--coral);box-shadow:0 0 0 3px rgba(255,92,58,.18),0 4px 20px rgba(0,0,0,.1)}
+.card.hidden{display:none!important}
+.card-img-wrap{position:relative;overflow:hidden;height:155px}
+.card-img{width:100%;height:100%;object-fit:cover;display:block;filter:brightness(.84) saturate(.82);transition:filter .25s,transform .25s}
+.card:hover .card-img{filter:brightness(.92) saturate(1);transform:scale(1.03)}
+.check-ring{position:absolute;top:9px;right:9px;width:28px;height:28px;background:var(--coral);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;font-weight:700;opacity:0;transition:opacity .15s,transform .15s;transform:scale(.7);pointer-events:none;z-index:2}
+.card.selected .check-ring{opacity:1;transform:scale(1)}
+.card-badge{position:absolute;bottom:9px;left:9px;font-size:9px;letter-spacing:1.5px;font-family:'Space Grotesk',sans-serif;text-transform:uppercase;padding:3px 8px;border-radius:20px;pointer-events:none;font-weight:600;z-index:2}
+.b-thrill{background:rgba(220,60,20,.88);color:white}
+.b-nature{background:rgba(30,80,40,.88);color:white}
+.b-chill{background:rgba(255,255,255,.9);color:var(--forest);border:1px solid rgba(0,0,0,.1)}
+.b-culture{background:rgba(80,55,20,.88);color:white}
+.b-filler{background:rgba(10,10,10,.72);color:#ccc;font-size:8px}
+.b-fixed{background:rgba(255,92,58,.88);color:white}
+.card-body{padding:12px 13px 14px}
+.card-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;line-height:1.3}
+.card-loc{font-size:10px;color:var(--muted);margin-bottom:7px;display:flex;align-items:center;gap:3px}
+.card-desc{font-size:11.5px;color:#555;line-height:1.65;margin-bottom:9px}
+.card-tags{display:flex;gap:6px;flex-wrap:wrap}
+.ctag{font-size:10px;color:var(--muted);background:var(--warm);border-radius:4px;padding:2px 7px;font-family:'Space Grotesk',sans-serif}
+.ctag strong{color:var(--text);font-weight:600}
+.card-note{margin-top:8px;background:#fffaf5;border-left:2px solid var(--coral);padding:6px 10px;font-size:10.5px;color:#7a5a3a;line-height:1.5;border-radius:0 4px 4px 0}
+
+/* ── FAB ── */
+.fab{position:fixed;bottom:22px;right:16px;background:var(--coral);color:white;border:none;border-radius:28px;padding:13px 20px;font-size:14px;font-weight:700;cursor:pointer;z-index:300;display:flex;align-items:center;gap:9px;box-shadow:0 6px 24px rgba(255,92,58,.45);touch-action:manipulation;-webkit-appearance:none;font-family:'Space Grotesk',sans-serif;letter-spacing:.3px;transition:transform .12s,box-shadow .12s}
+.fab:active{transform:scale(.95)}
+.fab-badge{background:white;color:var(--coral);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+
+/* ── OVERLAY ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:400;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+.overlay.open{opacity:1;pointer-events:all}
+
+/* ── BOTTOM SHEET ── */
+.sheet{position:fixed;bottom:0;left:0;right:0;background:var(--forest);border-radius:20px 20px 0 0;z-index:500;max-height:88vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);padding-bottom:max(env(safe-area-inset-bottom,0px),12px)}
+.sheet.open{transform:translateY(0)}
+.sheet-drag{width:36px;height:4px;background:rgba(255,255,255,.25);border-radius:2px;margin:12px auto 6px;flex-shrink:0}
+.sheet-header{display:flex;align-items:center;justify-content:space-between;padding:4px 20px 12px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.07)}
+.sheet-title{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--sand);letter-spacing:2px}
+.sheet-close{background:rgba(255,255,255,.1);border:none;color:var(--sand);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;touch-action:manipulation;-webkit-appearance:none;flex-shrink:0}
+.sheet-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;padding:14px 20px 20px}
+
+.sheet-empty{text-align:center;padding:32px 0 20px;color:var(--muted)}
+.sheet-empty .big{font-size:32px;display:block;margin-bottom:8px}
+.sheet-empty p{font-size:13px;line-height:1.7}
+
+.selected-list{margin-bottom:14px}
+.sel-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.06);border-radius:8px;margin-bottom:6px}
+.sel-icon{font-size:20px;flex-shrink:0}
+.sel-name{flex:1;font-size:13px;font-weight:500;color:var(--sand);line-height:1.3}
+.sel-remove{background:rgba(255,255,255,.1);border:none;color:var(--muted);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;touch-action:manipulation;-webkit-appearance:none;flex-shrink:0;transition:background .12s}
+.sel-remove:active{background:rgba(255,92,58,.3)}
+
+.sheet-section-label{font-size:9px;letter-spacing:3px;color:var(--muted);font-family:'Space Grotesk',sans-serif;text-transform:uppercase;margin:14px 0 8px}
+.fixed-item{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:rgba(255,255,255,.55)}
+.fixed-item .fi{font-size:14px}
+.always-box{background:rgba(255,92,58,.1);border:1px solid rgba(255,92,58,.22);border-radius:8px;padding:11px 13px;margin-top:12px}
+.always-title{font-size:9px;letter-spacing:2px;color:var(--coral2);font-family:'Space Grotesk',sans-serif;text-transform:uppercase;margin-bottom:7px}
+.always-item{display:flex;gap:8px;align-items:center;font-size:12px;color:rgba(255,255,255,.6);margin-bottom:3px}
+
+/* ── SUBMIT SECTION ── */
+.submit-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:18px 16px;margin-top:18px}
+.submit-title{font-size:13px;font-weight:600;color:var(--sand);margin-bottom:6px}
+.submit-desc{font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.6}
+.name-input{width:100%;background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.15);border-radius:7px;padding:10px 13px;font-size:14px;color:var(--sand);font-family:'Noto Sans JP',sans-serif;-webkit-appearance:none;outline:none;transition:border-color .15s;margin-bottom:10px}
+.name-input:focus{border-color:var(--coral)}
+.name-input::placeholder{color:rgba(255,255,255,.3)}
+.submit-btn{width:100%;background:var(--coral);border:none;border-radius:8px;padding:13px;color:white;font-size:14px;font-weight:700;font-family:'Space Grotesk',sans-serif;cursor:pointer;touch-action:manipulation;-webkit-appearance:none;letter-spacing:.5px;transition:opacity .15s}
+.submit-btn:disabled{opacity:.4;cursor:not-allowed}
+.submit-btn:active:not(:disabled){opacity:.8}
+.submit-success{display:none;text-align:center;padding:14px 0}
+.submit-success .s-icon{font-size:34px;display:block;margin-bottom:6px}
+.submit-success p{font-size:13px;color:var(--sand);line-height:1.7}
+.submit-success .s-name{font-weight:700;color:var(--coral2)}
+
+.tip-box{background:rgba(255,255,255,.04);border-radius:8px;padding:12px 14px;margin-top:14px;font-size:11px;color:rgba(255,255,255,.5);line-height:1.7}
+.tip-box strong{color:rgba(255,255,255,.75);display:block;margin-bottom:3px}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">TRIP 2025</div>
+  <div class="lang-row">
+    <button class="lang-btn active" onclick="setLang('ja')">🇯🇵 日本語</button>
+    <button class="lang-btn" onclick="setLang('mn')">🇲🇳 Монгол</button>
+    <button class="lang-btn" onclick="setLang('vi')">🇻🇳 Việt</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-inner">
+    <div class="hero-eyebrow" data-t='{"ja":"会社主催 研修旅行 2025 · 7月","mn":"Дадлагын аялал 2025 · 7-р сар","vi":"Chuyến đi thực tập 2025 · Tháng 7"}'>会社主催 研修旅行 2025 · 7月</div>
+    <h1 data-t='{"ja":"アクティビティ<em>を選ぼう</em>","mn":"Үйл ажиллагаа<em>СОНГОХ</em>","vi":"Chọn<em>HOẠT ĐỘNG</em>"}'>アクティビティ<em>を選ぼう</em></h1>
+    <p class="hero-sub" data-t='{"ja":"気になるアクティビティを選んで最後に名前を入力して送信してください。みなさんの希望をもとに旅程を決めます。","mn":"Дуртай үйл ажиллагаагаа сонгоод нэрээ оруулж илгээнэ үү. Таны хүслийн дагуу хөтөлбөр гаргана.","vi":"Chọn hoạt động bạn muốn, nhập tên và gửi. Chúng tôi sẽ lên kế hoạch dựa trên sở thích của mọi người."}'>気になるアクティビティを選んで最後に名前を入力して送信してください。みなさんの希望をもとに旅程を決めます。</p>
+    <div class="hero-chips">
+      <div class="chip">👥 16名</div>
+      <div class="chip">📅 7月 土日</div>
+      <div class="chip">🚗 1泊2日</div>
+      <div class="chip chip-coral" data-t='{"ja":"🏠 CEO別荘 → 熱海ビーチ で終わる","mn":"🏠 CEO зуслан → Атами эрэгт дуусна","vi":"🏠 Biệt thự CEO → bãi biển Atami"}'>🏠 CEO別荘 → 熱海ビーチ で終わる</div>
+    </div>
+  </div>
+</div>
+
+<!-- ROUTE BAR -->
+<div class="route-bar">
+  <div class="route-inner">
+    <div class="route-step"><span class="rs-icon">🚗</span><div class="rs-text"><span class="rs-title">7:00</span><span class="rs-sub" data-t='{"ja":"八王子出発","mn":"Хачиожи гарах","vi":"Khởi hành"}'>八王子出発</span></div></div>
+    <div class="route-step"><span class="rs-icon">🎯</span><div class="rs-text"><span class="rs-title" data-t='{"ja":"Day 1","mn":"1-р өдөр","vi":"Ngày 1"}'>Day 1</span><span class="rs-sub" data-t='{"ja":"下から選択","mn":"Доороос сонго","vi":"Chọn bên dưới"}'>下から選択</span></div></div>
+    <div class="route-step fixed-end"><span class="rs-icon">🏠</span><div class="rs-text"><span class="rs-title" data-t='{"ja":"Day 1 夜","mn":"1-р өдөр шөнө","vi":"Tối Ngày 1"}'>Day 1 夜</span><span class="rs-sub" data-t='{"ja":"CEO別荘 BBQ 宿泊","mn":"CEO зуслан BBQ","vi":"Biệt thự CEO BBQ"}'>CEO別荘 BBQ 宿泊</span></div></div>
+    <div class="route-step"><span class="rs-icon">🏖️</span><div class="rs-text"><span class="rs-title" data-t='{"ja":"Day 2 朝","mn":"2-р өдөр өглөө","vi":"Sáng Ngày 2"}'>Day 2 朝</span><span class="rs-sub" data-t='{"ja":"熱海ビーチ 海水浴","mn":"Атами эрэг усанд орох","vi":"Tắm biển Atami"}'>熱海ビーチ 海水浴</span></div></div>
+    <div class="route-step"><span class="rs-icon">🏠</span><div class="rs-text"><span class="rs-title" data-t='{"ja":"Day 2 午後","mn":"2-р өдөр үд","vi":"Chiều Ngày 2"}'>Day 2 午後</span><span class="rs-sub" data-t='{"ja":"帰宅","mn":"Гэртээ буцах","vi":"Về nhà"}'>帰宅</span></div></div>
+  </div>
+</div>
+
+<!-- PAGE -->
+<div class="page">
+
+  <!-- FILTERS -->
+  <div class="filter-wrap" id="filterWrap">
+    <button class="filter-btn active" data-cat="all" data-t='{"ja":"✦ すべて","mn":"✦ Бүгд","vi":"✦ Tất cả"}'>✦ すべて</button>
+    <button class="filter-btn" data-cat="thrill" data-t='{"ja":"😱 スリル","mn":"😱 Адрентур","vi":"😱 Mạo hiểm"}'>😱 スリル</button>
+    <button class="filter-btn" data-cat="nature" data-t='{"ja":"🌿 自然","mn":"🌿 Байгаль","vi":"🌿 Thiên nhiên"}'>🌿 自然</button>
+    <button class="filter-btn" data-cat="chill" data-t='{"ja":"😌 リラックス","mn":"😌 Амрах","vi":"😌 Thư giãn"}'>😌 リラックス</button>
+    <button class="filter-btn" data-cat="culture" data-t='{"ja":"⛩️ 文化","mn":"⛩️ Соёл","vi":"⛩️ Văn hóa"}'>⛩️ 文化</button>
+    <button class="filter-btn" data-cat="filler" data-t='{"ja":"＋ フィラー","mn":"＋ Нэмэлт","vi":"＋ Bổ sung"}'>＋ フィラー</button>
+  </div>
+
+  <!-- THRILL -->
+  <div class="section-head"><div class="sh-line"></div><div class="sh-label" data-t='{"ja":"😱 スリル系","mn":"😱 Адрентур","vi":"😱 Mạo hiểm"}'>😱 スリル系</div><div class="sh-line"></div></div>
+  <div class="cards">
+
+    <div class="card" data-cat="thrill" data-icon="🌉" data-name-ja="三島スカイウォーク 吊り橋" data-name-mn="Мишима Скайволк гүүр" data-name-vi="Cầu treo Mishima Skywalk">
+      <div class="card-img-wrap">
+        <img class="card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Mishima_Skywalk_01.jpg/1280px-Mishima_Skywalk_01.jpg" alt="三島スカイウォーク" onerror="this.src='https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&q=75'">
+        <div class="check-ring">✓</div>
+        <div class="card-badge b-thrill" data-t='{"ja":"スリル","mn":"Адрентур","vi":"Mạo hiểm"}'>スリル</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name" data-t='{"ja":"三島スカイウォーク — 吊り橋 400m","mn":"Мишима Скайволк — 400м гүүр","vi":"Cầu treo Mishima — 400m"}'>三島スカイウォーク — 吊り橋 400m</div>
+        <div class="card-loc">📍 <span data-t='{"ja":"三島市（熱海から車20分）","mn":"Мишима (Атамиас 20 мин)","vi":"Mishima (20 phút từ Atami)"}'>三島市（熱海から車20分）</span></div>
+        <div class="card-desc" data-t='{"ja":"日本一長い歩行者専用吊り橋・全長400m。高さ70mから富士山と駿河湾を一望。橋の上で足がすくむ本物の高さ感。","mn":"Японы хамгийн урт явган хүний гүүр — 400м. 70м өндрөөс Фүжи уул харагдана. Гүүр дээр жинхэнэ аймшиг мэдэрнэ.","vi":"Cầu đi bộ dài nhất Nhật Bản — 400m, cao 70m. Nhìn thấy núi Fuji và vịnh Suruga. Cảm giác chân run thật sự."}'>日本一長い歩行者専用吊り橋・全長400m。高さ70mから富士山と駿河湾を一望。橋の上で足がすくむ本物の高さ感。</div>
+        <div class="card-tags">
+          <div class="ctag">⏱ <strong data-t='{"ja":"約1時間","mn":"~1 цаг","vi":"~1 tiếng"}'>約1時間</strong></div>
+          <div class="ctag">🅿️ <strong data-t='{"ja":"無料駐車場","mn":"Үнэгүй зогсоол","vi":"Đỗ xe miễn phí"}'>無料駐車場</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-cat="thrill" data-icon="🚀" data-name-ja="ロングジップスライド 560m" data-name-mn="Урт ципслайд 560м" data-name-vi="Zipline dài 560m">
+      <div class="card-img-wrap">
+        <img class="card-img" src="https://mishima-skywalk.jp/wp-content/uploads/2021/12/FA_zipslide.jpg" alt="ジップライン" onerror="this.src='https://images.unsplash.com/photo-1519327232521-1ea2c736d34d?w=600&q=75'">
+        <div class="check-ring">✓</div>
+        <div class="card-badge b-thrill" data-t='{"ja":"スリル","mn":"Адрентур","vi":"Mạo hiểm"}'>スリル</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name" data-t='{"ja":"ロングジップスライド 560m","mn":"Урт ципслайд — 560м","vi":"Zipline dài — 560m"}'>ロングジップスライド 560m</div>
+        <div class="card-loc">📍 <span data-t='{"ja":"三島スカイウォーク内","mn":"Мишима Скайволк доторх","vi":"Bên trong Mishima Skywalk"}'>三島スカイウォーク内</span></div>
+        <div class="card-desc" data-t='{"ja":"往復560mをワイヤーで空中滑走。富士山を眺めながら時速30〜40kmで飛ぶ感覚。3本レーンで仲間と同時に滑れる。","mn":"560м утсан дээгүүр 30-40 км/цагт нисэх мэт. Фүжи харж явна. 3 зам — найзуудтайгаа зэрэг гулсана.","vi":"Trượt 560m qua không trung với tốc độ 30-40 km/h ngắm núi Fuji. 3 đường trượt cùng lúc với bạn bè."}'>往復560mをワイヤーで空中滑走。富士山を眺めながら時速30〜40kmで飛ぶ感覚。3本レーンで仲間と同時に滑れる。</div>
+        <div class="card-tags">
+          <div class="ctag">⏱ <strong data-t='{"ja":"約30分","mn":"~30 мин","vi":"~30 phút"}'>約30分</strong></div>
+          <div class="ctag">⚠️ <strong data-t='{"ja":"要事前予約","mn":"Урьдчилан захиалах","vi":"Đặt trước"}'>要事前予約</strong></div>
+        </div>
+        <div class="card-note" data-t='{"ja":"💡 吊り橋とセットが定番。同日に両方できる。","mn":"💡 Гүүртэй хамт хийх нь хамгийн алдартай хослол.","vi":"💡 Kết hợp với cầu treo là combo phổ biến nhất."}'>💡 吊り橋とセットが定番。同日に両方できる。</div>
+      </div>
+    </div>
+
+    <div class="card" data-cat="thrill" data-icon="🌲" data-name-ja="フォレストアドベンチャー 三島" data-name-mn="Ойн адрентур Мишима" data-name-vi="Forest Adventure Mishima">
+      <div class="card-img-wrap">
+        <img class="card-img" src="https://mishima-skywalk.jp/wp-content/uploads/2021/12/FA_adventure.jpg" alt="フォレストアドベンチャー" onerror="this.src='https://images.unsplash.com/photo-1551632811-561732d1e306?w=600&q=75'">
+        <div class="check-ring">✓</div>
+        <div class="card-badge b-thrill" data-t='{"ja":"スリル","mn":"Адрентур","vi":"Mạo hiểm"}'>スリル</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name" data-t='{"ja":"フォレストアドベンチャー — 三島","mn":"Ойн адрентур — Мишима","vi":"Forest Adventure — Mishima"}'>フォレストアドベンチャー — 三島</div>
+        <div class="card-loc">📍 <span data-t='{"ja":"三島スカイウォーク内 森林","mn":"Мишима Скайволк — ойн хэсэг","vi":"Khu rừng Mishima Skywalk"}'>三島スカイウォーク内 森林</span></div>
+        <div class="card-desc" data-t='{"ja":"木から木へハーネスで渡る樹上アスレチック。コースをクリアして最後にジップスライドで締め。約2時間のガチアスレチック。","mn":"Модноос мод руу ачааллаар дамжих ойн спорт. Хэд хэдэн замыг дуусгаад ципслайдаар дуусгана. ~2 цаг.","vi":"Leo cây đeo dây an toàn từ cây này sang cây khác. Hoàn thành nhiều đường rồi kết thúc bằng zipline. ~2 tiếng."}'>木から木へハーネスで渡る樹上アスレチック。コースをクリアして最後にジップスライドで締め。約2時間のガチアスレチック。</div>
+        <div class="card-tags">
+          <div class="ctag">⏱ <strong data-t='{"ja":"約2時間","mn":"~2 цаг","vi":"~2 tiếng"}'>約2時間</strong></div>
+          <div class="ctag">👟 <strong data-t='{"ja":"動きやすい服必須","mn":"Тав тухтай хувцас","vi":"Quần áo thoải mái"}'>動きやすい服必須</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-cat="thrill" data-icon="🌳" data-name-ja="フォレストアドベンチャー 御殿場" data-name-mn="Ойн адрентур Готэмба" data-name-vi="Forest Adventure Gotemba">
+      <div class="card-img-wrap">
+        <img class="card-img" src="https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=600&q=75" alt="フォレストアドベンチャー御殿場">
+        <div class="check-ring">✓</div>
+        <div class="card-badge b-thrill" data-t='{"ja":"スリル","mn":"Адрентур","vi":"Mạo hiểm"}'>スリル</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name" data-t='{"ja":"フォレストアドベンチャー — 御殿場","mn":"Ойн адрентур — Готэмба","vi":"Forest Adventure — Gotemba"}'>フォレストアドベンチャー — 御殿場</div>
+        <div class="card-loc">📍 <span data-t='{"ja":"御殿場市 富士山樹空の森","mn":"Готэмба — Фүжи ойн цэцэрлэг","vi":"Gotemba — Công viên rừng Fuji"}'>御殿場市 富士山樹空の森</span></div>
+        <div class="card-desc" data-t='{"ja":"富士山を眺めながら森のジップライン（110m）付き樹上アスレチック。三島より空いていて初めての人にも挑戦しやすい。","mn":"Фүжи уулыг харж явах 110м ципслайдтай ойн спорт. Мишимаас тайван. Анхлан суралцагчид тохиромжтой.","vi":"Zipline 110m trong rừng nhìn ra núi Fuji. Ít người hơn Mishima, phù hợp cho người mới thử."}'>富士山を眺めながら森のジップライン（110m）付き樹上アスレチック。三島より空いていて初めての人にも挑戦しやすい。</div>
+        <div class="card-tags">
+          <div class="ctag">⏱ <strong data-t='{"ja":"約2時間","mn":"~2 цаг","vi":"~2 tiếng"}'>約2時間</strong></div>
+          <div class="ctag">🗻 <strong data-t='{"ja":"富士山ビュー","mn":"Фүжи харагдана","vi":"View núi Fuji"}'>富士山ビュー</strong></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- NATURE -->
+  <div class="section-head"><div class="sh-line"></div><div class="sh-label" data-t='{"ja":"🌿 自然・アウトドア系","mn":"🌿 Байгаль, гадаа","vi":"🌿 Thiên nhiên & ngoài trời"}'>🌿 自然・アウトドア系</div><div class="sh-line"></div></div>
+  <div class="cards">
+
+    <div class="card" data-cat="nature" data-icon="🚣" data-name-ja="富士川ラフティング" data-name-mn="Фүжикава голын рафтинг" data-name-vi="Chèo bè sông Fujikawa">
+      <div class="card-img-wrap">
+        <img class="card-img" src="https://images.unsplash.com/photo-1530866495561-507c9faab2ed?w=600&q=75" alt="ラフティング">
+        <div class="check-ring">✓</div>
+        <div class="card-badge b-nature" data-t='{"ja":"アウトドア","mn":"Гадаа","vi":"Ngoài trời"}'>アウトドア</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name" data-t='{"ja":"富士川ラフティング","mn":"Фүжикава голын рафтинг","vi":"Chèo bè sông Fujikawa"}'>富士川ラフティング</div>
+        <div class="card-loc">📍 <span data-t='{"ja":"富士宮市 富士川（日本三大急流）","mn":"Фүжиномия — Фүжикава гол","vi":"Fujinomiya — Sông Fujikawa"}'>富士宮市 富士川</span></div>
+        <div class="card-desc" data-t='{"ja":"日本三大急流・富士川を約6kmゴムボートで下る。激流あり穏やか区間あり。全員全身濡れる。ウェットスーツ・装備レンタル込み。7月が最高。","mn":"Японы гурван хурдтай голын нэг — ~6км хийсгэлтэн унах. Хурдтай болон тайван хэсэгтэй. Бүх хүн норно. Тоног хэрэгсэл бүгд багтсан.","vi":"Chèo bè ~6km trên sông chảy xiết nhất Nhật Bản. Có đoạn dữ, đoạn êm. Mọi người đều ướt. Trang bị cho mượn."}'>日本三大急流・富士川を約6kmゴムボートで下る。激流あり穏やか区間あり。全員全身濡れる。ウェットスーツ・装備レンタル込み。7月が最高。</div>
+        <div class="card-tags">
+          <div class="ctag">⏱ <strong data-t='{"ja":"約3時間","mn":"~3 цаг","vi":"~3 tiếng"}'>約3時間</strong></div>
+          <div class="ctag">💧 <strong data-t='{"ja":"全身濡れる","mn":"Бүх бие норно","vi":"Ướt hết người"}'>全身濡れる</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-cat="nature" data-icon="🏄" data-name-ja="本栖湖 SUP・カヤック" data-name-mn="Мотосуко нуур SUP каяк" data-name-vi="SUP & Kayak hồ Motosu">
+      <div class="card-img-wrap">
+        <!-- Real SUP on calm lake with Mt Fuji view — Unsplash lake paddleboard -->
+        <img class="card-img" src="https://images.unsplash.com/photo-1531722569936-825d4ebd85ea?w=600&q=75" alt="SUP本栖湖" onerror="this.src='https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?w=600&q=75'">
+        <div class="check-ring">✓</div>
+        <div class="card-badge b-nature" data-t='{"ja":"アウトドア","mn":"Гадаа","vi":"Ngoài trời"}'>アウトドア</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name" data-t='{"ja":"本栖湖 SUP・カヤック","mn":"Мотосуко нуур — SUP, каяк","vi":"Hồ Motosu — SUP & Kayak"}'>本栖湖 SUP・カヤック</div>
+        <div class="card-loc">📍 <span data-t='{"ja":"本栖湖（千円札の逆さ富士の湖）","mn":"Мотосуко нуур (1000 иений Фүжи нуур)","vi":"Hồ Motosu (Hồ Fuji ngược trên tờ 1000 yên)"}'>本栖湖（千円札の逆さ富士の湖）</span></div>
+        <div class="card-desc" data-t='{"ja":"千円札の「逆さ富士」が見える湖でSUPまたはカヤック体験。ボードに立って穏やかな湖をパドルで漕ぐ。初心者でも安心。スリルとリラックスの中間。","mn":"1000 иений \"урвуу Фүжи\" харагдах нуур дээр SUP эсвэл каяк. Тайван нуур дээр хөлөвч дээр зогсож хөлөг жолоодно. Анхлан суралцагчид тохиромжтой.","vi":"SUP hoặc kayak trên hồ có hình Fuji ngược nổi tiếng. Đứng trên ván chèo trên mặt hồ yên tĩnh. Phù hợp người mới."}'>千円札の「逆さ富士」が見える湖でSUPまたはカヤック体験。ボードに立って穏やかな湖をパドルで漕ぐ。初心者でも安心。スリルとリラックスの中間。</div>
+        <div class="card-tags">
+          <div class="ctag">⏱ <strong data-t='{"ja":"約2時間","mn":"~2 цаг","vi":"~2 tiếng"}'>約2時間</strong></div>
+          <div class="ctag">🌅 <strong data-t='{"ja":"逆さ富士の絶景","mn":"Урвуу Фүжи үзэгдэл","vi":"Cảnh Fuji ngược"}'>逆さ富士の絶景</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-cat="nature" data-icon="🦁" data-name-ja="富士サファリパーク＋ジャングルバス" data-name-mn="Фүжи сафари парк Жангл бас" data-name-vi="Safari Fuji + Jungle Bus">
+      <div class="card-img-wrap">
+        <img class="card-img" src="https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=600&q=75" alt="サファリ">
+        <div class="check-ring">✓</div>
+        <div class="card-badge b-nature" data-t='{"ja":"アウトドア","mn":"Гадаа","vi":"Ngoài trời"}'>アウトドア</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name" data-t='{"ja":"富士サファリパーク＋ジャングルバス","mn":"Фүжи сафари парк — Жангл бас","vi":"Safari Fuji + Jungle Bus"}'>富士サファリパーク＋ジャングルバス</div>
+        <div class="card-loc">📍 <span data-t='{"ja":"裾野市（富士山麓）","mn":"Сусоно хот (Фүжи уулын бэл)","vi":"Susono (dưới chân núi Fuji)"}'>裾野市（富士山麓）</span></div>
+        <div class="card-desc" data-t='{"ja":"日本最大のサファリパーク。鉄格子のジャングルバスに乗り込み、窓越しにライオン・クマ・キリン・ゾウに直接エサやり。近い、迫力、においがある。","mn":"Японы хамгийн том сафари парк. Төмөр торлог автобусаар явж арслан, баавгай, заан руу хоол өгнө. Жинхэнэ, ойрхон.","vi":"Safari lớn nhất Nhật Bản. Ngồi xe bus lưới sắt cho sư tử, gấu, hươu cao cổ, voi ăn qua cửa sổ. Rất thật, rất gần."}'>日本最大のサファリパーク。鉄格子のジャングルバスに乗り込み、窓越しにライオン・クマ・キリン・ゾウに直接エサやり。近い、迫力、においがある。</div>
+        <div class="card-tags">
+          <div class="ctag">⏱ <strong data-t='{"ja":"約2.5時間","mn":"~2.5 цаг","vi":"~2.5 tiếng"}'>約2.5時間</strong></div>
+          <div class="ctag">⚠️ <strong data-t='{"ja":"バス要事前予約","mn":"Автобус захиалах","vi":"Đặt xe bus trước"}'>バス要事前予約</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-cat="nature" data-icon="🌊" data-name-ja="白糸の滝 朝散歩" data-name-mn="Шираито хүрхрээ өглөөний алхалт" data-name-vi="Thác Shiraito buổi sáng">
+      <div class="card-img-wrap">
+        <img class="card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Shiraito_falls.jpg/800px-Shiraito_falls.jpg" alt="白糸の滝" onerror="this.src='https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&q=75'">
+        <div class="check-ring">✓</div>
+        <div class="card-badge b-nature" data-t='{"ja":"自然","mn":"Байгаль","vi":"Thiên nhiên"}'>自然</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name" data-t='{"ja":"白糸の滝 — 朝の散歩","mn":"Шираито хүрхрээ — өглөөний алхалт","vi":"Thác Shiraito — dạo bộ sáng sớm"}'>白糸の滝 — 朝の散歩</div>
+        <div class="card-loc">📍 <span data-t='{"ja":"富士宮市","mn":"Фүжиномия хот","vi":"Fujinomiya"}'>富士宮市</span></div>
+        <div class="card-desc" data-t='{"ja":"幅150mに無数の細い流れが岩盤から湧き出る富士山の伏流水の滝。地味だけど本物の迫力。朝一番が清々しい。1kmの楽な遊歩道。","mn":"150м өргөн хаданаас урсаж буй Фүжийн булгийн ус. Жижигхэн боловч жинхэнэ гоё. Өглөө нь хамгийн сайхан. 1км алхалт.","vi":"Thác rộng 150m với vô số dòng nhỏ từ đá — nước ngầm núi Fuji. Bình dị nhưng ấn tượng. Đẹp nhất buổi sáng."}'>幅150mに無数の細い流れが岩盤から湧き出る富士山の伏流水の滝。地味だけど本物の迫力。朝一番が清々しい。1kmの楽な遊歩道。</div>
+        <div class="card-tags">
+          <div class="ctag">⏱ <strong data-t='{"ja":"約45分","mn":"~45 мин","vi":"~45 phút"}'>約45分</strong></div>
+          <div class="ctag">✅ <strong data-t='{"ja":"入場無料","mn":"Үнэгүй","vi":"Miễn phí"}'>入場無料</strong></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CHILL -->
+  <div class="section-head"><div class="sh-line"></div><div class="sh-label" data-t='{"ja":"😌 リラックス・チル系","mn":"😌 Амрах, тайван","vi":"😌 Thư giãn"}'>😌 リラックス・チル系</div><div class="sh-line"></div></div>
+  <div class="cards">
+
+    <div class="card" data-cat="chill" data-icon="♨️" data-name-ja="オーシャンスパ Fuua 温泉・岩盤浴" data-name-mn="Оушн спа Фуа рашаан" data-name-vi="Onsen Ocean Spa Fuua">
+      <div class="card-img-wrap">
+        <!-- Actual outdoor onsen with sea/nature view, not interior spa -->
+        <img class="card-img" src="https://images.unsplash.com/photo-1610878180933-123728745d22?w=600&q=75" alt="温泉" onerror="this.src='https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=600&q=75'">
+        <div class="check-ring">✓</div>
+        <div class="card-badge b-chill" data-t='{"ja":"リラックス","mn":"Амрах","vi":"Thư giãn"}'>リラックス</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name" data-t='{"ja":"オーシャンスパ Fuua — 温泉・岩盤浴","mn":"Оушн спа Фуа — рашаан, хаднаас дулаацах","vi":"Ocean Spa Fuua — Onsen & Đá nóng"}'>オーシャンスパ Fuua — 温泉・岩盤浴</div>
+        <div class="card-loc">📍 <span data-t='{"ja":"熱海市（CEO別荘から近い）","mn":"Атами хот (CEO зусланаас ойрхон)","vi":"Atami (gần biệt thự CEO)"}'>熱海市（CEO別荘から近い）</span></div>
+        <div class="card-desc" data-t='{"ja":"熱海最大の日帰り温泉施設。露天風呂から相模湾を一望できる。サウナ・岩盤浴・休憩ラウンジあり。Day1の夜かDay2の朝に立ち寄れる。","mn":"Атамийн хамгийн том усанд орох газар. Далайг харж халуун рашаанд орно. Sauna, хад дулаацах, амрах өрөө байна.","vi":"Khu onsen lớn nhất Atami. Bồn tắm ngoài trời nhìn ra vịnh Sagami. Có sauna, đá nóng, phòng nghỉ."}'>熱海最大の日帰り温泉施設。露天風呂から相模湾を一望できる。サウナ・岩盤浴・休憩ラウンジあり。Day1の夜かDay2の朝に立ち寄れる。</div>
+        <div class="card-tags">
+          <div class="ctag">🌊 <strong data-t='{"ja":"海一望露天風呂","mn":"Далай харагдах рашаан","vi":"Bồn tắm nhìn ra biển"}'>海一望露天風呂</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-cat="chill" data-icon="🔥" data-name-ja="水ヶ塚公園 自前BBQ＋ビール" data-name-mn="Мизугацука парк BBQ шар айраг" data-name-vi="BBQ công viên Mizugatsuka">
+      <div class="card-img-wrap">
+        <img class="card-img" src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&q=75" alt="BBQ">
+        <div class="check-ring">✓</div>
+        <div class="card-badge b-chill" data-t='{"ja":"リラックス","mn":"Амрах","vi":"Thư giãn"}'>リラックス</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name" data-t='{"ja":"水ヶ塚公園 — 自前BBQ＋ビール","mn":"Мизугацука парк — BBQ, шар айраг","vi":"Công viên Mizugatsuka — BBQ & bia"}'>水ヶ塚公園 — 自前BBQ＋ビール</div>
+        <div class="card-loc">📍 <span data-t='{"ja":"裾野市（富士山が正面に見える）","mn":"Сусоно хот (Фүжи уул урд нь)","vi":"Susono (nhìn thẳng ra núi Fuji)"}'>裾野市（富士山が正面に見える）</span></div>
+        <div class="card-desc" data-t='{"ja":"富士山を正面に眺めながら自分たちで焼き肉とビール。広い芝生・トイレあり。ポータブルグリルで自由に焼くスタイル。","mn":"Фүжи уулыг харж мах шарах, шар айраг уух. Өргөн зүлэг, жорлон бий. Зөөврийн мангал ашиглана.","vi":"Nướng thịt và uống bia nhìn thẳng núi Fuji. Bãi cỏ rộng, nhà vệ sinh. Dùng bếp nướng di động."}'>富士山を正面に眺めながら自分たちで焼き肉とビール。広い芝生・トイレあり。ポータブルグリルで自由に焼くスタイル。</div>
+        <div class="card-tags">
+          <div class="ctag">⏱ <strong data-t='{"ja":"約1.5時間","mn":"~1.5 цаг","vi":"~1.5 tiếng"}'>約1.5時間</strong></div>
+          <div class="ctag">🗻 <strong data-t='{"ja":"富士山ビュー","mn":"Фүжи харагдана","vi":"View núi Fuji"}'>富士山ビュー</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-cat="chill" data-icon="🏖️" data-name-ja="熱海サンビーチ 海水浴" data-name-mn="Атами Сан эрэг усанд орох" data-name-vi="Tắm biển Atami Sun Beach">
+      <div class="card-img-wrap">
+        <img class="card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Atami_Sunbeach.jpg/1280px-Atami_Sunbeach.jpg" alt="熱海ビーチ" onerror="this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=75'">
+        <div class="check-ring">✓</div>
+        <div class="card-badge b-fixed" data-t='{"ja":"固定イベント","mn":"Тогтсон","vi":"Cố định"}'>固定イベント</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name" data-t='{"ja":"熱海サンビーチ — Day2 海水浴","mn":"Атами Сан эрэг — 2-р өдөр","vi":"Bãi biển Atami — Ngày 2"}'>熱海サンビーチ — Day2 海水浴</div>
+        <div class="card-loc">📍 <span data-t='{"ja":"熱海市（CEO別荘のすぐ近く）","mn":"Атами хот (CEO зусланаас яг ойрхон)","vi":"Atami (ngay gần biệt thự CEO)"}'>熱海市（CEO別荘のすぐ近く）</span></div>
+        <div class="card-desc" data-t='{"ja":"Day2の朝に楽しむ熱海の海。砂浜あり・海の家あり・シャワーあり。これは全プラン共通の固定イベントです。","mn":"2-р өдрийн өглөө Атами далайд усанд ор. Элсэн эрэг, жижиг дэлгүүр, шүршүүр бий. Бүх төлөвлөгөөний тогтсон хэсэг.","vi":"Tắm biển Atami sáng Ngày 2. Có bãi cát, quán ăn nhỏ, nhà tắm. Sự kiện cố định trong mọi kế hoạch."}'>Day2の朝に楽しむ熱海の海。砂浜あり・海の家あり・シャワーあり。これは全プラン共通の固定イベントです。</div>
+        <div class="card-tags">
+          <div class="ctag">🔒 <strong data-t='{"ja":"全プラン固定","mn":"Бүх төлөвлөгөөнд байгаа","vi":"Có trong mọi kế hoạch"}'>全プラン固定</strong></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CULTURE -->
+  <div class="section-head"><div class="sh-line"></div><div class="sh-label" data-t='{"ja":"⛩️ 文化・観光系","mn":"⛩️ Соёл, аялал","vi":"⛩️ Văn hóa & tham quan"}'>⛩️ 文化・観光系</div><div class="sh-line"></div></div>
+  <div class="cards">
+
+    <div class="card" data-cat="culture" data-icon="🌋" data-name-ja="箱根大涌谷 火山・黒たまご" data-name-mn="Хаконэ Овакудани галт уул хар өндөг" data-name-vi="Hakone Owakudani núi lửa & trứng đen">
+      <div class="card-img-wrap">
+        <!-- Real Owakudani volcanic steam landscape -->
+        <img class="card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Owakudani_2010.jpg/1280px-Owakudani_2010.jpg" alt="大涌谷" onerror="this.src='https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=600&q=75'">
+        <div class="check-ring">✓</div>
+        <div class="card-badge b-culture" data-t='{"ja":"文化","mn":"Соёл","vi":"Văn hóa"}'>文化</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name" data-t='{"ja":"箱根大涌谷 — 火山・黒たまご","mn":"Хаконэ Овакудани — галт уул, хар өндөг","vi":"Hakone Owakudani — núi lửa & trứng đen"}'>箱根大涌谷 — 火山・黒たまご</div>
+        <div class="card-loc">📍 <span data-t='{"ja":"箱根町（熱海から車40分）","mn":"Хаконэ (Атамиас 40 мин)","vi":"Hakone (40 phút từ Atami)"}'>箱根町（熱海から車40分）</span></div>
+        <div class="card-desc" data-t='{"ja":"活火山の噴煙と硫黄臭が漂うリアルな火山地帯。黒たまごを食べると7年長生きする言い伝えあり。においがキツい。でも本物。","mn":"Идэвхтэй галт уулын утаа, хүхрийн үнэр. Хар өндгийг идвэл 7 жил дэлгэр амьдарна гэдэг. Үнэр хүчтэй. Гэхдээ жинхэнэ.","vi":"Khu núi lửa thật với khói và mùi lưu huỳnh. Ăn trứng đen sẽ sống thêm 7 năm theo truyền thuyết. Mùi nồng. Rất thật."}'>活火山の噴煙と硫黄臭が漂うリアルな火山地帯。黒たまごを食べると7年長生きする言い伝えあり。においがキツい。でも本物。</div>
+        <div class="card-tags">
+          <div class="ctag">⏱ <strong data-t='{"ja":"約1.5時間","mn":"~1.5 цаг","vi":"~1.5 tiếng"}'>約1.5時間</strong></div>
+          <div class="ctag">🥚 <strong data-t='{"ja":"黒たまご体験","mn":"Хар өндөг идэх","vi":"Ăn trứng đen"}'>黒たまご体験</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-cat="culture" data-icon="⛩️" data-name-ja="来宮神社 樹齢2000年の大楠" data-name-mn="Киномия дугандах 2000 жилийн мод" data-name-vi="Đền Kinomiya cây 2000 tuổi">
+      <div class="card-img-wrap">
+        <img class="card-img" src="https://images.unsplash.com/photo-1478436127897-769e1b3f0f36?w=600&q=75" alt="来宮神社">
+        <div class="check-ring">✓</div>
+        <div class="card-badge b-culture" data-t='{"ja":"文化","mn":"Соёл","vi":"Văn hóa"}'>文化</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name" data-t='{"ja":"来宮神社 — 樹齢2000年の大楠","mn":"Киномия дугандах — 2000 жилийн мод","vi":"Đền Kinomiya — cây 2000 tuổi"}'>来宮神社 — 樹齢2000年の大楠</div>
+        <div class="card-loc">📍 <span data-t='{"ja":"熱海市内（CEO別荘から近い）","mn":"Атами хот (CEO зусланаас ойрхон)","vi":"Atami (gần biệt thự CEO)"}'>熱海市内（CEO別荘から近い）</span></div>
+        <div class="card-desc" data-t='{"ja":"樹齢2000年以上の大楠を一周すると寿命が1年延びると言われる神社。神聖な雰囲気の中を静かに歩く体験。観光客が少ない穴場。","mn":"2000 гаруй жилийн мод тойрон алхавал нэг жил дэлгэр амьдарна гэдэг. Тайван, ариун орчин. Жуулчин цөөн.","vi":"Đi vòng quanh cây 2000 tuổi sẽ thêm 1 năm tuổi thọ. Yên tĩnh, linh thiêng. Ít khách du lịch."}'>樹齢2000年以上の大楠を一周すると寿命が1年延びると言われる神社。神聖な雰囲気の中を静かに歩く体験。観光客が少ない穴場。</div>
+        <div class="card-tags">
+          <div class="ctag">⏱ <strong data-t='{"ja":"約30分","mn":"~30 мин","vi":"~30 phút"}'>約30分</strong></div>
+          <div class="ctag">✅ <strong data-t='{"ja":"無料","mn":"Үнэгүй","vi":"Miễn phí"}'>無料</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-cat="culture" data-icon="⛵" data-name-ja="芦ノ湖 遊覧船" data-name-mn="Асиноко нуурын аялалын онгоц" data-name-vi="Du thuyền hồ Ashi">
+      <div class="card-img-wrap">
+        <!-- Real Hakone Lake Ashi with pirate boat and Fuji -->
+        <img class="card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Hakone_Ashinoko_Kankosen.jpg/1280px-Hakone_Ashinoko_Kankosen.jpg" alt="芦ノ湖" onerror="this.src='https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=600&q=75'">
+        <div class="check-ring">✓</div>
+        <div class="card-badge b-culture" data-t='{"ja":"文化","mn":"Соёл","vi":"Văn hóa"}'>文化</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name" data-t='{"ja":"芦ノ湖 遊覧船","mn":"Асиноко нуурын аялалын онгоц","vi":"Du thuyền hồ Ashi"}'>芦ノ湖 遊覧船</div>
+        <div class="card-loc">📍 <span data-t='{"ja":"箱根町 芦ノ湖","mn":"Хаконэ — Асиноко нуур","vi":"Hakone — Hồ Ashi"}'>箱根町 芦ノ湖</span></div>
+        <div class="card-desc" data-t='{"ja":"富士山と赤い鳥居が映る有名な湖を海賊船型の遊覧船でゆったりクルーズ。天気が良ければ富士山が見える。のんびりした40分。","mn":"Улаан тории, Фүжи тусаж байх нуурыг далайн дээрэмчид хэлбэртэй онгоцоор аялна. Цаг сайн бол Фүжи харагдана.","vi":"Ngồi tàu hải tặc dạo hồ có bóng cổng đỏ và núi Fuji. Trời đẹp thấy núi Fuji. 40 phút thư thái."}'>富士山と赤い鳥居が映る有名な湖を海賊船型の遊覧船でゆったりクルーズ。天気が良ければ富士山が見える。のんびりした40分。</div>
+        <div class="card-tags">
+          <div class="ctag">⏱ <strong data-t='{"ja":"約40分","mn":"~40 мин","vi":"~40 phút"}'>約40分</strong></div>
+          <div class="ctag">🗻 <strong data-t='{"ja":"晴れ限定・富士山ビュー","mn":"Нарлаг өдөр Фүжи","vi":"View Fuji trời đẹp"}'>晴れ限定・富士山ビュー</strong></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FILLER -->
+  <div class="section-head"><div class="sh-line"></div><div class="sh-label" data-t='{"ja":"＋ フィラー（日程が少ない時の追加オプション）","mn":"＋ Нэмэлт (бага байвал нэмнэ)","vi":"＋ Bổ sung (khi còn ít hoạt động)"}'>＋ フィラー</div><div class="sh-line"></div></div>
+  <div class="cards">
+
+    <div class="card" data-cat="filler" data-icon="🏔️" data-name-ja="富士山五合目（フィラー）" data-name-mn="Фүжи уулын 5-р буудал нэмэлт" data-name-vi="Trạm 5 núi Fuji (bổ sung)">
+      <div class="card-img-wrap">
+        <img class="card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Fuji_5th_station.jpg/800px-Fuji_5th_station.jpg" alt="富士山五合目" onerror="this.src='https://images.unsplash.com/photo-1578637387939-43c525550085?w=600&q=75'">
+        <div class="check-ring">✓</div>
+        <div class="card-badge b-filler" data-t='{"ja":"フィラー","mn":"Нэмэлт","vi":"Bổ sung"}'>フィラー</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name" data-t='{"ja":"富士山五合目 — 標高2,380m","mn":"Фүжи уулын 5-р буудал — 2380м","vi":"Trạm 5 núi Fuji — 2.380m"}'>富士山五合目 — 標高2,380m</div>
+        <div class="card-loc">📍 <span data-t='{"ja":"富士宮口（7月はシャトルバスで登る）","mn":"Фүжиномия орц (7-р сард шаттл автобус)","vi":"Cổng Fujinomiya (tháng 7 đi xe shuttle)"}'>富士宮口（7月はシャトルバスで登る）</span></div>
+        <div class="card-desc" data-t='{"ja":"雲の上に立つ体験。お土産ショップ・山小屋の軽食・短い散策路あり。アクティビティが少ない日のボリューム追加に。7月は私有車規制のためシャトルバスで登る。","mn":"Үүлний дээр зогсох мэдрэмж. Сувенирын дэлгүүр, уулын хоол бий. Хөтөлбөр багатай өдөр нэмэхэд тохиромжтой.","vi":"Cảm giác đứng trên mây. Cửa hàng lưu niệm, quán ăn núi, đường ngắn. Dùng khi còn ít hoạt động."}'>雲の上に立つ体験。お土産ショップ・山小屋の軽食・短い散策路あり。アクティビティが少ない日のボリューム追加に。7月は私有車規制のためシャトルバスで登る。</div>
+        <div class="card-tags">
+          <div class="ctag">⏱ <strong data-t='{"ja":"約1.5時間","mn":"~1.5 цаг","vi":"~1.5 tiếng"}'>約1.5時間</strong></div>
+          <div class="ctag">🧥 <strong data-t='{"ja":"上着必須（10〜15℃）","mn":"Хүрмэ зайлшгүй","vi":"Cần áo ấm 10-15°C"}'>上着必須（10〜15℃）</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-cat="filler" data-icon="⛰️" data-name-ja="富士山登山（希望者のみ）" data-name-mn="Фүжи уул авирах хүсэгчид" data-name-vi="Leo núi Fuji tự nguyện">
+      <div class="card-img-wrap">
+        <img class="card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Fuji_climbing.jpg/1280px-Fuji_climbing.jpg" alt="富士山登山" onerror="this.src='https://images.unsplash.com/photo-1578637387939-43c525550085?w=600&q=75'">
+        <div class="check-ring">✓</div>
+        <div class="card-badge b-filler" data-t='{"ja":"フィラー","mn":"Нэмэлт","vi":"Bổ sung"}'>フィラー</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name" data-t='{"ja":"富士山登山 — 希望者のみ（3〜6名）","mn":"Фүжи уул авирах — хүсэгчид (3-6 хүн)","vi":"Leo núi Fuji — tự nguyện (3-6 người)"}'>富士山登山 — 希望者のみ（3〜6名）</div>
+        <div class="card-loc">📍 <span data-t='{"ja":"富士宮口 五合目から山頂（往復6〜7時間）","mn":"5-р буудлаас оройд (зайлуулж 6-7 цаг)","vi":"Từ trạm 5 lên đỉnh (khứ hồi 6-7 tiếng)"}'>富士宮口 五合目→山頂（往復6〜7時間）</span></div>
+        <div class="card-desc" data-t='{"ja":"希望者だけ登山、残りは五合目で待機・お土産・散策。体力のある3〜6名向け。7月は登山シーズン本番。","mn":"Хүсэгчид авирна, бусад нь 5-р буудалд хүлээнэ. Бие чийрэг 3-6 хүнд. 7-р сард авирахад тохиромжтой.","vi":"Người muốn leo, còn lại chờ ở trạm 5. Dành cho 3-6 người có sức khỏe. Tháng 7 là mùa leo núi."}'>希望者だけ登山、残りは五合目で待機・お土産・散策。体力のある3〜6名向け。7月は登山シーズン本番。</div>
+        <div class="card-tags">
+          <div class="ctag">⏱ <strong data-t='{"ja":"往復6〜7時間","mn":"6-7 цаг","vi":"6-7 tiếng"}'>往復6〜7時間</strong></div>
+          <div class="ctag">⚠️ <strong data-t='{"ja":"装備・水必須","mn":"Тоног хэрэгсэл шаардлагатай","vi":"Cần trang bị & nước"}'>装備・水必須</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-cat="filler" data-icon="🦶" data-name-ja="熱海 足湯・仲見世散策" data-name-mn="Атами хөлийн рашаан хотоор алхах" data-name-vi="Atami ngâm chân & dạo phố">
+      <div class="card-img-wrap">
+        <!-- Actual Atami street/town area, not a Bali beach -->
+        <img class="card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Atami_Ginza.jpg/1280px-Atami_Ginza.jpg" alt="熱海" onerror="this.src='https://images.unsplash.com/photo-1526481280693-3bfa7568e0f3?w=600&q=75'">
+        <div class="check-ring">✓</div>
+        <div class="card-badge b-filler" data-t='{"ja":"フィラー","mn":"Нэмэлт","vi":"Bổ sung"}'>フィラー</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name" data-t='{"ja":"熱海 足湯・仲見世散策","mn":"Атами — хөлийн рашаан, хотоор алхах","vi":"Atami — ngâm chân & dạo phố"}'>熱海 足湯・仲見世散策</div>
+        <div class="card-loc">📍 <span data-t='{"ja":"熱海市内（熱海七湯）","mn":"Атами хот (7 рашаан)","vi":"Trung tâm Atami (7 suối nước nóng)"}'>熱海市内（熱海七湯）</span></div>
+        <div class="card-desc" data-t='{"ja":"市内各所に無料の足湯スポットが7か所。仲見世通りで食べ歩きもできる。ビーチ前後の時間調整に最適。これは普通の街歩きです。","mn":"Хотын доторх 7 газарт үнэгүй хөлийн рашаан байна. Жижиг дэлгүүрт хоол идэж алхаж болно. Энэ бол жирийн хот доторх алхалт.","vi":"7 điểm ngâm chân miễn phí trong thành phố. Có thể ăn vặt dạo phố. Phù hợp điều chỉnh thời gian trước/sau biển."}'>市内各所に無料の足湯スポットが7か所。仲見世通りで食べ歩きもできる。ビーチ前後の時間調整に最適。これは普通の街歩きです。</div>
+        <div class="card-tags">
+          <div class="ctag">⏱ <strong data-t='{"ja":"30〜60分","mn":"30-60 мин","vi":"30-60 phút"}'>30〜60分</strong></div>
+          <div class="ctag">✅ <strong data-t='{"ja":"無料","mn":"Үнэгүй","vi":"Miễn phí"}'>無料</strong></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /page -->
+
+<!-- FAB -->
+<button class="fab" id="fab" onclick="openSheet()">
+  <span id="fabLabel">旅程を見る</span>
+  <span class="fab-badge" id="fabCount">0</span>
+</button>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="closeSheet()"></div>
+
+<!-- SHEET -->
+<div class="sheet" id="sheet">
+  <div class="sheet-drag"></div>
+  <div class="sheet-header">
+    <div class="sheet-title" id="sheetTitle">MY TRIP</div>
+    <button class="sheet-close" onclick="closeSheet()">✕</button>
+  </div>
+  <div class="sheet-scroll">
+
+    <div id="sheetEmpty" class="sheet-empty">
+      <span class="big">👆</span>
+      <p id="emptyText">カードをタップしてアクティビティを選ぼう</p>
+    </div>
+
+    <div class="selected-list" id="selList"></div>
+
+    <div class="sheet-section-label" id="fixedLabel">固定スケジュール</div>
+    <div class="fixed-item"><span class="fi">🚗</span><span id="fix1">07:00 八王子出発</span></div>
+    <div class="fixed-item"><span class="fi">🏠</span><span id="fix2">Day1夜 CEO別荘 BBQ</span></div>
+    <div class="fixed-item"><span class="fi">🏖️</span><span id="fix3">Day2朝 熱海ビーチ</span></div>
+    <div class="fixed-item"><span class="fi">🏠</span><span id="fix4">Day2午後 帰宅</span></div>
+
+    <div class="always-box">
+      <div class="always-title" id="alwaysTitle">必ず含まれるもの</div>
+      <div class="always-item"><span>🏠</span><span id="alw1">CEO別荘 宿泊・BBQ</span></div>
+      <div class="always-item"><span>🏖️</span><span id="alw2">熱海サンビーチ</span></div>
+    </div>
+
+    <!-- SUBMIT -->
+    <div class="submit-box" id="submitBox">
+      <div class="submit-title" id="submitTitle">✅ 選択を送信する</div>
+      <div class="submit-desc" id="submitDesc">名前を入力して「送信」を押してください。あなたの希望が記録されます。</div>
+      <input class="name-input" id="nameInput" type="text" placeholder="名前 / Нэр / Tên" autocomplete="name" autocorrect="off" autocapitalize="words">
+      <button class="submit-btn" id="submitBtn" onclick="submitChoices()" disabled>
+        <span id="submitBtnText">送信する</span>
+      </button>
+      <div class="submit-success" id="successMsg">
+        <span class="s-icon">🎉</span>
+        <p id="successText">送信完了！ありがとうございます。<br><span class="s-name" id="successName"></span></p>
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <strong id="tipTitle">💡 選び方のコツ</strong>
+      <span id="tipText">高額なアクティビティ（ラフティング等）を選ぶ場合は富士山五合目を省くとバランスが取れる。メイン1〜2個＋フィラー1個が理想的。</span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────
+let lang = 'ja';
+let selected = [];
+// Storage key for submissions
+const STORE_KEY = 'trip2025_submissions';
+
+// ─── TRANSLATIONS ─────────────────────────────────────────────────
+const T = {
+  ja:{
+    fabLabel:'旅程を見る', sheetTitle:'MY TRIP',
+    emptyText:'カードをタップしてアクティビティを選ぼう',
+    fixedLabel:'固定スケジュール', alwaysTitle:'必ず含まれるもの',
+    fix1:'07:00 八王子出発', fix2:'Day1夜 CEO別荘 BBQ',
+    fix3:'Day2朝 熱海ビーチ', fix4:'Day2午後 帰宅',
+    alw1:'CEO別荘 宿泊・BBQ', alw2:'熱海サンビーチ',
+    submitTitle:'✅ 選択を送信する',
+    submitDesc:'名前を入力して「送信」を押してください。あなたの希望が記録されます。',
+    submitBtnText:'送信する',
+    namePlaceholder:'名前',
+    tipTitle:'💡 選び方のコツ',
+    tipText:'高額なアクティビティ（ラフティング等）を選ぶ場合は富士山五合目を省くとバランスが取れる。メイン1〜2個＋フィラー1個が理想的。',
+    successText:'送信完了！ありがとうございます。',
+    needSelection:'※アクティビティを最低1つ選んでください',
+    needName:'※名前を入力してください'
+  },
+  mn:{
+    fabLabel:'Аяллын хөтөлбөр', sheetTitle:'МИН АЯЛАЛ',
+    emptyText:'Картыг дарж үйл ажиллагаагаа сонго',
+    fixedLabel:'Тогтсон хуваарь', alwaysTitle:'Заавал байдаг зүйлс',
+    fix1:'07:00 Хачиожиас гарах', fix2:'1-р өдөр шөнө: CEO зуслан BBQ',
+    fix3:'2-р өдөр өглөө: Атами эрэг', fix4:'2-р өдөр үд: Гэртээ буцах',
+    alw1:'CEO зусланд хоноглох, BBQ', alw2:'Атами Сан эрэг',
+    submitTitle:'✅ Сонголтоо илгээх',
+    submitDesc:'Нэрээ бичиж "Илгээх" товч дарна уу. Таны хүсэл бүртгэгдэнэ.',
+    submitBtnText:'Илгээх',
+    namePlaceholder:'Нэр',
+    tipTitle:'💡 Зөвлөмж',
+    tipText:'Үнэтэй үйл ажиллагаа сонговол Фүжи 5-р буудлыг орхи. Гол 1-2 + нэмэлт 1 нь хамгийн тохиромжтой.',
+    successText:'Амжилттай илгээгдлээ! Баярлалаа.',
+    needSelection:'※Дор хаяж нэг үйл ажиллагаа сонгоно уу',
+    needName:'※Нэрээ оруулна уу'
+  },
+  vi:{
+    fabLabel:'Xem lịch trình', sheetTitle:'CHUYẾN ĐI CỦA TÔI',
+    emptyText:'Nhấn vào thẻ để chọn hoạt động',
+    fixedLabel:'Lịch trình cố định', alwaysTitle:'Luôn bao gồm',
+    fix1:'07:00 Khởi hành từ Hachioji', fix2:'Tối Ngày 1: Biệt thự CEO & BBQ',
+    fix3:'Sáng Ngày 2: Bãi biển Atami', fix4:'Chiều Ngày 2: Về nhà',
+    alw1:'Biệt thự CEO — ở lại & BBQ', alw2:'Bãi biển Atami Sun',
+    submitTitle:'✅ Gửi lựa chọn',
+    submitDesc:'Nhập tên và nhấn "Gửi". Lựa chọn của bạn sẽ được ghi lại.',
+    submitBtnText:'Gửi',
+    namePlaceholder:'Tên',
+    tipTitle:'💡 Gợi ý chọn',
+    tipText:'Nếu chọn hoạt động đắt (chèo bè...) hãy bỏ trạm 5 núi Fuji để cân bằng. Lý tưởng: 1-2 hoạt động chính + 1 bổ sung.',
+    successText:'Đã gửi thành công! Cảm ơn bạn.',
+    needSelection:'※Vui lòng chọn ít nhất 1 hoạt động',
+    needName:'※Vui lòng nhập tên'
+  }
+};
+
+// ─── LANG ─────────────────────────────────────────────────────────
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.includes({ja:'🇯🇵',mn:'🇲🇳',vi:'🇻🇳'}[l])));
+  document.querySelectorAll('[data-t]').forEach(el => {
+    try { const m = JSON.parse(el.getAttribute('data-t')); if(m[l]!==undefined) el.innerHTML = m[l]; } catch(e){}
+  });
+  const t = T[l];
+  const ids = ['fabLabel','sheetTitle','emptyText','fixedLabel','alwaysTitle','fix1','fix2','fix3','fix4','alw1','alw2','submitTitle','submitDesc','submitBtnText','tipTitle','tipText'];
+  ids.forEach(id => { const el = document.getElementById(id); if(el) el.textContent = t[id]||''; });
+  document.getElementById('nameInput').placeholder = t.namePlaceholder;
+  // update selected names
+  selected = selected.map(s => ({...s, name: document.querySelector(`.card[data-name-ja="${s.nameJa}"]`)?.getAttribute('data-name-'+l) || s.nameJa}));
+  renderSheet();
+}
+
+// ─── CARD INTERACTIONS ────────────────────────────────────────────
+function toggleCard(card) {
+  const nameJa = card.getAttribute('data-name-ja');
+  const name   = card.getAttribute('data-name-'+lang) || nameJa;
+  const icon   = card.dataset.icon;
+  if (card.classList.contains('selected')) {
+    card.classList.remove('selected');
+    selected = selected.filter(s => s.nameJa !== nameJa);
+  } else {
+    card.classList.add('selected');
+    selected.push({nameJa, name, icon});
+  }
+  document.getElementById('fabCount').textContent = selected.length;
+  updateSubmitBtn();
+  renderSheet();
+}
+
+document.querySelectorAll('.card').forEach(card => {
+  card.addEventListener('click', function(){ toggleCard(this); });
+  card.addEventListener('touchend', function(e){ e.preventDefault(); toggleCard(this); }, {passive:false});
+});
+
+// ─── FILTER ───────────────────────────────────────────────────────
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  function doFilter(){ 
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const cat = btn.dataset.cat;
+    document.querySelectorAll('.card').forEach(c => c.classList.toggle('hidden', cat!=='all' && c.dataset.cat!==cat));
+  }
+  btn.addEventListener('click', doFilter);
+  btn.addEventListener('touchend', e => { e.preventDefault(); doFilter(); }, {passive:false});
+});
+
+// ─── SHEET ────────────────────────────────────────────────────────
+function openSheet() {
+  document.getElementById('sheet').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSheet() {
+  document.getElementById('sheet').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+// Swipe down to close
+let startY = 0;
+document.getElementById('sheet').addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, {passive:true});
+document.getElementById('sheet').addEventListener('touchend', e => { if(e.changedTouches[0].clientY - startY > 80) closeSheet(); }, {passive:true});
+
+function renderSheet() {
+  const list = document.getElementById('selList');
+  const empty = document.getElementById('sheetEmpty');
+  list.innerHTML = '';
+  if (selected.length === 0) {
+    empty.style.display = 'block';
+  } else {
+    empty.style.display = 'none';
+    selected.forEach(s => {
+      const d = document.createElement('div');
+      d.className = 'sel-item';
+      d.innerHTML = `<div class="sel-icon">${s.icon}</div><div class="sel-name">${s.name}</div><button class="sel-remove" onclick="removeItem('${s.nameJa.replace(/'/g,"\\'")}')">✕</button>`;
+      list.appendChild(d);
+    });
+  }
+}
+
+function removeItem(nameJa) {
+  selected = selected.filter(s => s.nameJa !== nameJa);
+  document.querySelectorAll('.card').forEach(c => { if(c.getAttribute('data-name-ja')===nameJa) c.classList.remove('selected'); });
+  document.getElementById('fabCount').textContent = selected.length;
+  updateSubmitBtn();
+  renderSheet();
+}
+
+// ─── SUBMIT ───────────────────────────────────────────────────────
+const nameInput = document.getElementById('nameInput');
+nameInput.addEventListener('input', updateSubmitBtn);
+
+function updateSubmitBtn() {
+  const ok = selected.length > 0 && nameInput.value.trim().length > 0;
+  document.getElementById('submitBtn').disabled = !ok;
+}
+
+function submitChoices() {
+  const name = nameInput.value.trim();
+  if (!name || selected.length === 0) return;
+
+  const entry = {
+    name,
+    lang,
+    timestamp: new Date().toISOString(),
+    choices: selected.map(s => ({nameJa: s.nameJa, icon: s.icon}))
+  };
+
+  // Save to localStorage
+  let all = [];
+  try { all = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch(e){}
+  all.push(entry);
+  localStorage.setItem(STORE_KEY, JSON.stringify(all));
+
+  // Show success
+  document.getElementById('submitBox').querySelector('form');
+  document.getElementById('nameInput').style.display = 'none';
+  document.getElementById('submitBtn').style.display = 'none';
+  document.getElementById('submitTitle').style.display = 'none';
+  document.getElementById('submitDesc').style.display = 'none';
+  document.getElementById('successName').textContent = name + ' — ' + selected.map(s=>s.icon).join(' ');
+  document.getElementById('successText').innerHTML = T[lang].successText + '<br><span class="s-name" id="successName">' + name + ' — ' + selected.map(s=>s.icon+' '+s.nameJa).join(', ') + '</span>';
+  document.getElementById('successMsg').style.display = 'block';
+}
+// ─── ADMIN VIEW (open console and call viewSubmissions()) ──────────
+window.viewSubmissions = function() {
+  try {
+    const all = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
+    if (all.length === 0) { console.log('No submissions yet.'); return; }
+    console.table(all.map(e => ({
+      名前: e.name,
+      言語: e.lang,
+      時刻: e.timestamp,
+      選択: e.choices.map(c=>c.icon+' '+c.nameJa).join(' | ')
+    })));
+    return all;
+  } catch(e) { console.error(e); }
+};
+
+// ─── INIT ─────────────────────────────────────────────────────────
+setLang('ja');
+</script>
+</body>
+</html>
+HTMLEOF
+echo "done"
